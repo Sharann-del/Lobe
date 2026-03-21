@@ -1,0 +1,19 @@
+# Project: Lobe (Notion Superset)
+# Stack: Next.js 14, TypeScript strict, Tailwind + CSS vars, Supabase, Zustand
+
+## Rules
+- TypeScript: strict mode, no `any`, explicit return types on all functions
+- No inline styles. Use CSS variables via Tailwind arbitrary values: `bg-[var(--bg-2)]`
+- Never use Tailwind color classes (bg-blue-500 etc). Use CSS var classes only.
+- All Supabase queries: always handle errors, use .throwOnError() or check .error
+- Components: always accept and spread className prop for composability
+- Hooks: prefix with 'use', single responsibility, always cleanup subscriptions
+- File naming: PascalCase components, camelCase utils, kebab-case routes
+- Imports: absolute paths via @/ alias, group: react → next → external → internal → types
+- Database: always write SQL migrations, never use Supabase dashboard for schema changes
+- Forms: no HTML <form> submit, use controlled state + onClick handlers
+- Animations: framer-motion only, duration < 200ms for micro-interactions
+- Icons: lucide-react only, size prop (not className for size), default 16px
+- Error handling: every async function wrapped in try/catch, errors surfaced to user via toast
+- Zustand stores: one file per domain (pagesStore, uiStore, workspaceStore)
+- React Query: queryKey arrays follow [resource, id, ...params] pattern

@@ -2,26 +2,142 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * JUST Sans — from Just Creative kit (Regular + Extra Bold woff2 in public/fonts/just-sans/).
+ */
+@font-face {
+  font-family: "JUST Sans";
+  src:
+    local("JUST Sans"),
+    url("/fonts/just-sans/JUST-Sans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
-@media (prefers-color-scheme: dark) {
+@font-face {
+  font-family: "JUST Sans";
+  src:
+    local("JUST Sans ExBold"),
+    url("/fonts/just-sans/JUST-Sans-ExBold.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Base */
+    --bg-0: #0a0a0a;
+    --bg-1: #111111;
+    --bg-2: #1a1a1a;
+    --bg-3: #222222;
+    --bg-4: #2a2a2a;
+
+    /* Borders */
+    --border-subtle: #1f1f1f;
+    --border-default: #2e2e2e;
+    --border-strong: #3d3d3d;
+
+    /* Text */
+    --text-primary: #f0f0f0;
+    --text-secondary: #888888;
+    --text-tertiary: #555555;
+    --text-placeholder: #3a3a3a;
+
+    /* Accent */
+    --accent: #e8e8e8;
+    --accent-muted: #333333;
+
+    /* Semantic colors — base */
+    --color-red: #e05252;
+    --color-orange: #e07842;
+    --color-yellow: #d4a847;
+    --color-green: #52a869;
+    --color-teal: #3d9e8c;
+    --color-blue: #4a7ce0;
+    --color-purple: #8b5cf6;
+    --color-pink: #d45c8a;
+    --color-gray: #666666;
+
+    /* Semantic colors — muted backgrounds */
+    --color-red-muted: rgba(224, 82, 82, 0.15);
+    --color-orange-muted: rgba(224, 120, 66, 0.15);
+    --color-yellow-muted: rgba(212, 168, 71, 0.15);
+    --color-green-muted: rgba(82, 168, 105, 0.15);
+    --color-teal-muted: rgba(61, 158, 140, 0.15);
+    --color-blue-muted: rgba(74, 124, 224, 0.15);
+    --color-purple-muted: rgba(139, 92, 246, 0.15);
+    --color-pink-muted: rgba(212, 92, 138, 0.15);
+    --color-gray-muted: rgba(102, 102, 102, 0.15);
+
+    /* Radius */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+
+    /* Transitions */
+    --transition-fast: 80ms ease;
+    --transition-default: 150ms ease;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-}
+@layer base {
+  * {
+    border-color: var(--border-default);
+  }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  body {
+    color: var(--text-primary);
+    background: var(--bg-0);
+    font-family: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "JUST Sans", var(--font-dm-sans), "DM Sans", system-ui,
+      sans-serif;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace,
+      monospace;
+  }
+
+  ::selection {
+    background: var(--accent-muted);
+    color: var(--text-primary);
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-default);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--border-strong);
   }
 }
