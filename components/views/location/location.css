@@ -1,0 +1,60 @@
+/* Leaflet + Mapbox popup tweaks (CSS variables from globals). */
+
+.lobe-leaflet-pin-wrap {
+  background: transparent !important;
+  border: none !important;
+}
+
+.lobe-leaflet-pin-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-default);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--bg-1) !important;
+  color: var(--text-primary);
+  border: 1px solid var(--border-default) !important;
+  border-radius: var(--radius-md);
+}
+
+.leaflet-popup-tip {
+  background: var(--bg-1) !important;
+  border: 1px solid var(--border-default);
+}
+
+.leaflet-container {
+  background: var(--bg-2);
+  font-family: inherit;
+}
+
+.mapboxgl-popup-content {
+  background: var(--bg-1) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 8px;
+}
+
+.mapboxgl-popup-close-button {
+  color: var(--text-secondary);
+}
+
+.lobe-qp {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.lobe-qp span {
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-right: 4px;
+}

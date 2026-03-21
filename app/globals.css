@@ -92,6 +92,11 @@
     border-color: var(--border-default);
   }
 
+  .editor-page-title-textarea {
+    font-family: var(--font-instrument-serif), "Instrument Serif", "JUST Sans",
+      var(--font-dm-sans), "DM Sans", system-ui, serif;
+  }
+
   body {
     color: var(--text-primary);
     background: var(--bg-0);

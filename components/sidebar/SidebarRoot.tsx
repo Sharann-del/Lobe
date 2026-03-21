@@ -21,7 +21,10 @@ import { SidebarSettings } from "@/components/sidebar/SidebarSettings";
 import { SidebarShared } from "@/components/sidebar/SidebarShared";
 import { SidebarTrash } from "@/components/sidebar/SidebarTrash";
 import { SidebarUiProvider } from "@/components/sidebar/sidebar-ui-context";
+import { SidebarReminders } from "@/components/reminders/SidebarReminders";
 import { ScrollArea } from "@/components/ui";
+import { useRemindersStore } from "@/lib/stores/remindersStore";
+import { useRemindersRealtime } from "@/lib/hooks/useRemindersRealtime";
 import { cn } from "@/lib/utils";
 
 const COLLAPSED_KEY = "lobe-sidebar-collapsed";
@@ -105,6 +108,14 @@ export function SidebarRoot({
 
   usePagesRealtime(activeWorkspaceId);
 
+  useEffect(() => {
+    if (!activeWorkspaceId || !_userId) return;
+    useRemindersStore.getState().setContext(activeWorkspaceId, _userId);
+    void useRemindersStore.getState().fetchEvents();
+  }, [activeWorkspaceId, _userId]);
+
+  useRemindersRealtime(activeWorkspaceId);
+
   const openMoveDialog = useCallback((pageId: string) => {
     setMovePageId(pageId);
     setMoveOpen(true);
@@ -151,6 +162,14 @@ export function SidebarRoot({
                 collapsed={collapsed}
               >
                 <SidebarFavorites collapsed={collapsed} />
+              </SidebarSection>
+
+              <SidebarSection
+                label="Reminders"
+                storageKey="reminders"
+                collapsed={collapsed}
+              >
+                <SidebarReminders collapsed={collapsed} />
               </SidebarSection>
 
               <SidebarSection
