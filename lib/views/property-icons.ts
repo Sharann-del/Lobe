@@ -15,6 +15,7 @@ import {
   Sigma,
   Clock,
   MapPin,
+  CircleDot,
   type LucideIcon,
 } from "lucide-react";
 import type { PropertyValueType } from "@/lib/types/properties";
@@ -26,6 +27,7 @@ export const PROPERTY_TYPE_ICONS: Record<PropertyValueType, LucideIcon> = {
   boolean: CheckSquare,
   select: Tag,
   multi_select: Tags,
+  status: CircleDot,
   url: Link2,
   email: Mail,
   phone: Phone,
@@ -49,6 +51,7 @@ export const PROPERTY_TYPE_LABELS: Record<PropertyValueType, string> = {
   boolean: "Boolean",
   select: "Select",
   multi_select: "Multi-select",
+  status: "Status",
   url: "URL",
   email: "Email",
   phone: "Phone",

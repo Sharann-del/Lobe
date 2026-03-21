@@ -97,6 +97,11 @@
       var(--font-dm-sans), "DM Sans", system-ui, serif;
   }
 
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+
   body {
     color: var(--text-primary);
     background: var(--bg-0);
@@ -144,5 +149,28 @@
 
   ::-webkit-scrollbar-thumb:hover {
     background: var(--border-strong);
+  }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cursor-default-text,
+  .cursor-default-text * {
+    cursor: default;
+  }
+
+  .cursor-default-text a,
+  .cursor-default-text button,
+  .cursor-default-text [role="button"],
+  .cursor-default-text input,
+  .cursor-default-text textarea,
+  .cursor-default-text select {
+    cursor: pointer;
   }
 }

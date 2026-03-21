@@ -14,3 +14,4 @@ export { CellFormula } from "./CellFormula";
 export { CellRollup } from "./CellRollup";
 export { CellTimestamp } from "./CellTimestamp";
 export { CellLocation } from "./CellLocation";
+export { CellStatus } from "./CellStatus";

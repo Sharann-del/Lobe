@@ -6,7 +6,13 @@ import type {
   PersonValue,
   FileValue,
   RelationValue,
+  StatusOption,
+  NumberConfig,
+  DateConfig,
+  AggregationType,
 } from "@/lib/types/properties";
+import type { FormulaResult } from "@/lib/types/formula";
+import type { SelectOption } from "@/lib/types/properties";
 import {
   CellText,
   CellNumber,
@@ -24,6 +30,7 @@ import {
   CellRollup,
   CellTimestamp,
   CellLocation,
+  CellStatus,
 } from "./cells";
 
 interface PropertyCellProps {
@@ -31,6 +38,16 @@ interface PropertyCellProps {
   value: unknown;
   onChange: (value: unknown) => void;
   onNavigate?: (pageId: string) => void;
+  onCreateOption?: (option: SelectOption) => void;
+  onUploadFile?: (file: File) => Promise<FileValue>;
+  members?: PersonValue[];
+  relationEntries?: RelationValue[];
+  numberConfig?: Partial<NumberConfig>;
+  dateConfig?: Partial<DateConfig>;
+  statusOptions?: StatusOption[];
+  formulaExpression?: string;
+  formulaLookup?: (name: string) => FormulaResult;
+  rollupAggregation?: AggregationType;
   className?: string;
 }
 
@@ -39,6 +56,16 @@ export function PropertyCell({
   value,
   onChange,
   onNavigate,
+  onCreateOption,
+  onUploadFile,
+  members,
+  relationEntries,
+  numberConfig,
+  dateConfig,
+  statusOptions,
+  formulaExpression,
+  formulaLookup,
+  rollupAggregation,
   className,
 }: PropertyCellProps): React.ReactElement {
   const readOnly = READ_ONLY_TYPES.includes(schema.type);
@@ -60,6 +87,7 @@ export function PropertyCell({
         <CellNumber
           value={(value as number) ?? null}
           onChange={(v) => onChange(v)}
+          config={numberConfig}
           readOnly={readOnly}
           className={className}
         />
@@ -71,6 +99,7 @@ export function PropertyCell({
           value={(value as string) ?? null}
           options={schema.options}
           onChange={(v) => onChange(v)}
+          onCreateOption={onCreateOption}
           readOnly={readOnly}
           className={className}
         />
@@ -82,6 +111,18 @@ export function PropertyCell({
           value={(value as string[]) ?? []}
           options={schema.options}
           onChange={(v) => onChange(v)}
+          onCreateOption={onCreateOption}
+          readOnly={readOnly}
+          className={className}
+        />
+      );
+
+    case "status":
+      return (
+        <CellStatus
+          value={(value as string) ?? null}
+          options={statusOptions ?? []}
+          onChange={(v) => onChange(v)}
           readOnly={readOnly}
           className={className}
         />
@@ -92,6 +133,7 @@ export function PropertyCell({
         <CellDate
           value={(value as string) ?? null}
           onChange={(v) => onChange(v)}
+          config={dateConfig}
           readOnly={readOnly}
           className={className}
         />
@@ -109,6 +151,17 @@ export function PropertyCell({
       );
 
     case "person":
+      return (
+        <CellPerson
+          value={(value as PersonValue[]) ?? []}
+          members={members}
+          onChange={(v) => onChange(v)}
+          multi
+          readOnly={readOnly}
+          className={className}
+        />
+      );
+
     case "created_by":
     case "last_edited_by":
       return (
@@ -153,7 +206,9 @@ export function PropertyCell({
       return (
         <CellFile
           value={(value as FileValue[]) ?? []}
-          readOnly
+          onChange={(v) => onChange(v)}
+          onUpload={onUploadFile}
+          readOnly={readOnly}
           className={className}
         />
       );
@@ -162,8 +217,10 @@ export function PropertyCell({
       return (
         <CellRelation
           value={(value as RelationValue[]) ?? []}
-          readOnly={readOnly}
+          entries={relationEntries}
+          onChange={(v) => onChange(v)}
           onNavigate={onNavigate}
+          readOnly={readOnly}
           className={className}
         />
       );
@@ -179,10 +236,23 @@ export function PropertyCell({
       );
 
     case "formula":
-      return <CellFormula value={value} className={className} />;
+      return (
+        <CellFormula
+          value={value}
+          expression={formulaExpression}
+          propertyLookup={formulaLookup}
+          className={className}
+        />
+      );
 
     case "rollup":
-      return <CellRollup value={value} className={className} />;
+      return (
+        <CellRollup
+          value={value}
+          aggregation={rollupAggregation}
+          className={className}
+        />
+      );
 
     case "created_time":
     case "last_edited_time":

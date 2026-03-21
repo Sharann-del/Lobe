@@ -2,32 +2,21 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils/cn";
-import type { NumberFormat } from "@/lib/types/properties";
+import type { NumberConfig } from "@/lib/types/properties";
+import { formatNumberValue, progressPercent } from "@/lib/views/format-number";
 
 interface CellNumberProps {
   value: number | null;
   onChange: (value: number | null) => void;
-  format?: NumberFormat;
+  config?: Partial<NumberConfig>;
   readOnly?: boolean;
   className?: string;
-}
-
-function formatNumber(val: number | null, fmt: NumberFormat): string {
-  if (val === null || val === undefined) return "";
-  switch (fmt) {
-    case "currency":
-      return `$${val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    case "percent":
-      return `${val}%`;
-    default:
-      return val.toLocaleString("en-US");
-  }
 }
 
 export function CellNumber({
   value,
   onChange,
-  format: fmt = "plain",
+  config,
   readOnly,
   className,
 }: CellNumberProps): React.ReactElement {
@@ -54,21 +43,35 @@ export function CellNumber({
     }
   }, [draft, value, onChange]);
 
+  const formatted = formatNumberValue(value, config);
+  const showProgress = config?.showProgressBar && value !== null;
+
   if (readOnly || !editing) {
     return (
-      <span
-        className={cn(
-          "block w-full truncate px-2 py-1 text-right text-sm tabular-nums",
-          value !== null
-            ? "text-[var(--text-primary)]"
-            : "text-[var(--text-placeholder)]",
-          !readOnly && "cursor-text",
-          className
-        )}
+      <div
+        className={cn("relative w-full", className)}
         onDoubleClick={() => !readOnly && setEditing(true)}
       >
-        {value !== null ? formatNumber(value, fmt) : readOnly ? "—" : "Empty"}
-      </span>
+        {showProgress && (
+          <div className="absolute inset-x-0 bottom-0 h-1 overflow-hidden rounded-full bg-[var(--bg-3)]">
+            <div
+              className="h-full rounded-full bg-[var(--accent)] transition-all duration-150"
+              style={{ width: `${progressPercent(value, config)}%` }}
+            />
+          </div>
+        )}
+        <span
+          className={cn(
+            "block w-full truncate px-2 py-1 text-right text-sm tabular-nums",
+            value !== null
+              ? "text-[var(--text-primary)]"
+              : "text-[var(--text-placeholder)]",
+            !readOnly && "cursor-text"
+          )}
+        >
+          {value !== null ? formatted : readOnly ? "—" : "Empty"}
+        </span>
+      </div>
     );
   }
 

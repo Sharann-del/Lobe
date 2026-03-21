@@ -549,6 +549,8 @@ export const usePageTreeStore = create<PageTreeState>()(
           sort_order: maxOrder + 1000,
           depth: 0,
           word_count: 0,
+          is_database: false,
+          database_schema: [],
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
