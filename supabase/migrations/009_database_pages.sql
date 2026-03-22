@@ -9,7 +9,7 @@ ALTER TABLE public.pages
 COMMENT ON COLUMN public.pages.is_database IS
   'When true this page acts as a database whose child pages are entries.';
 COMMENT ON COLUMN public.pages.database_schema IS
-  'Property schema for database entries: [{id, name, type, options, icon, description, required, default_value}].';
+  'Property schema for section articles: [{id, name, type, options, icon, description, required, default_value}].';
 
 CREATE INDEX pages_is_database_idx ON public.pages (workspace_id, is_database)
   WHERE is_database = TRUE;

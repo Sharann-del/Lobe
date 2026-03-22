@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { format, isToday, parseISO } from "date-fns";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { format, isToday } from "date-fns";
 import { cn } from "@/lib/utils/cn";
 import { CalendarEventBlock } from "./CalendarEventBlock";
 import {
@@ -68,7 +68,7 @@ export function TimeGrid({
   );
 
   const handleDragStart = useCallback(
-    (e: React.MouseEvent, item: CalendarItem, colIdx: number) => {
+    (e: React.MouseEvent, item: CalendarItem) => {
       e.preventDefault();
       e.stopPropagation();
       const startY = e.clientY;
@@ -76,7 +76,6 @@ export function TimeGrid({
         itemId: item.id,
         originalDate: item.date,
         originalTime: item.startTime ?? "00:00",
-        colIdx,
         startY,
         currentY: startY,
       });
@@ -116,7 +115,7 @@ export function TimeGrid({
       }
     };
 
-    const handleUp = (): void => {
+    const handleUp = (e: MouseEvent): void => {
       if (dragState && onEventDrop) {
         const deltaY = dragState.currentY - dragState.startY;
         const deltaMinutes = Math.round(deltaY / (HOUR_HEIGHT_PX / 60));
@@ -124,7 +123,13 @@ export function TimeGrid({
           timeToMinutes(dragState.originalTime) + deltaMinutes
         );
         const newTime = minutesToTimeStr(snapped);
-        onEventDrop(dragState.itemId, dragState.originalDate, newTime);
+        const target = document.elementFromPoint(e.clientX, e.clientY);
+        const dateContainer =
+          target instanceof HTMLElement
+            ? target.closest<HTMLElement>("[data-timegrid-date]")
+            : null;
+        const newDate = dateContainer?.dataset.timegridDate ?? dragState.originalDate;
+        onEventDrop(dragState.itemId, newDate, newTime);
       }
       if (resizeState && onEventResize) {
         const deltaY = resizeState.currentY - resizeState.startY;
@@ -225,11 +230,10 @@ export function TimeGrid({
           </div>
 
           {/* Columns */}
-          {columns.map((col, colIdx) => (
+          {columns.map((col) => (
             <TimeGridColumnSlots
               key={col.dateStr}
               column={col}
-              colIdx={colIdx}
               dragState={dragState}
               resizeState={resizeState}
               onSlotClick={handleSlotClick}
@@ -254,7 +258,6 @@ export function TimeGrid({
 
 function TimeGridColumnSlots({
   column,
-  colIdx,
   dragState,
   resizeState,
   onSlotClick,
@@ -263,18 +266,20 @@ function TimeGridColumnSlots({
   onResizeStart,
 }: {
   column: TimeGridColumn;
-  colIdx: number;
   dragState: DragState | null;
   resizeState: ResizeState | null;
   onSlotClick: (dateStr: string, hour: number) => void;
   onEventClick: (item: CalendarItem) => void;
-  onDragStart: (e: React.MouseEvent, item: CalendarItem, colIdx: number) => void;
+  onDragStart: (e: React.MouseEvent, item: CalendarItem) => void;
   onResizeStart: (e: React.MouseEvent, item: CalendarItem) => void;
 }): React.ReactElement {
   const timedItems = column.items.filter((i) => !i.isAllDay);
 
   return (
-    <div className="relative flex-1 border-l border-[var(--border-subtle)]">
+    <div
+      className="relative flex-1 border-l border-[var(--border-subtle)]"
+      data-timegrid-date={column.dateStr}
+    >
       {/* Hour slot backgrounds */}
       {HOURS.map((hour) => (
         <div
@@ -345,7 +350,7 @@ function TimeGridColumnSlots({
             {/* Drag handle (whole event) */}
             <div
               className="absolute inset-0 cursor-grab"
-              onMouseDown={(e) => onDragStart(e, item, colIdx)}
+              onMouseDown={(e) => onDragStart(e, item)}
             />
             {/* Resize handle (bottom edge) */}
             <div
@@ -401,7 +406,6 @@ interface DragState {
   itemId: string;
   originalDate: string;
   originalTime: string;
-  colIdx: number;
   startY: number;
   currentY: number;
 }

@@ -1,8 +1,8 @@
 import type { FilterRule } from "@/lib/types/filters";
-import type { PageProperty } from "@/lib/types/properties";
+import type { NodeProperty } from "@/lib/types/properties";
 
 function getPropertyValue(
-  properties: PageProperty[],
+  properties: NodeProperty[],
   propertyId: string
 ): unknown {
   return properties.find((p) => p.key === propertyId)?.value ?? null;
@@ -81,7 +81,7 @@ function evaluateRule(val: unknown, rule: FilterRule): boolean {
 }
 
 export function applyFilters(
-  properties: PageProperty[],
+  properties: NodeProperty[],
   rules: FilterRule[]
 ): boolean {
   if (rules.length === 0) return true;
@@ -89,7 +89,7 @@ export function applyFilters(
   let result = true;
 
   for (let i = 0; i < rules.length; i++) {
-    const rule = rules[i];
+    const rule = rules[i]!;
     const val = getPropertyValue(properties, rule.propertyId);
     const match = evaluateRule(val, rule);
 

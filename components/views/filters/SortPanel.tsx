@@ -30,7 +30,12 @@ export function SortPanel({
   const updateSort = useCallback(
     (index: number, patch: Partial<ColumnSort>) => {
       const next = [...sorts];
-      next[index] = { ...next[index], ...patch };
+      const prev = next[index];
+      if (!prev) return;
+      next[index] = {
+        propertyId: patch.propertyId ?? prev.propertyId,
+        direction: patch.direction ?? prev.direction,
+      };
       onChange(next);
     },
     [sorts, onChange]

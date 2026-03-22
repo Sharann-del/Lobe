@@ -1,4 +1,4 @@
--- Database entry templates: predefined structures for new entries.
+-- Article templates: predefined structures for new articles.
 
 CREATE TABLE public.templates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

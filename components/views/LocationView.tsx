@@ -16,15 +16,15 @@ import {
   TooltipProvider,
 } from "@/components/ui";
 import { cn } from "@/lib/utils/cn";
-import { useTableViewStore } from "@/lib/stores/tableViewStore";
-import { usePageTreeStore } from "@/lib/stores/pageTreeStore";
+import { useGridViewStore } from "@/lib/stores/gridViewStore";
+import { useSectionTreeStore } from "@/lib/stores/sectionTreeStore";
 import { useLocationViewStore } from "@/lib/stores/locationViewStore";
-import { getSortedDatabaseRows } from "@/lib/views/database-view-rows";
+import { getSortedDatabaseRows } from "@/lib/views/section-view-rows";
 import { PROPERTY_TYPE_ICONS } from "@/lib/views/property-icons";
 import { buildLocationEntries } from "./location/location-entries";
 import { filterLocationEntries } from "./location/filter-entries";
 import { LocationSidePanel } from "./location/LocationSidePanel";
-import type { PageRow } from "@/lib/types/pages";
+import type { NodeRow } from "@/lib/types/nodes";
 import type { PropertySchema } from "@/lib/types/properties";
 import type { LocationValue } from "@/lib/types/properties";
 import "./location/location.css";
@@ -45,7 +45,7 @@ const EMPTY_IDS: string[] = [];
 
 export interface LocationViewProps {
   workspaceId: string;
-  databasePageId: string;
+  sectionNodeId: string;
   userId: string;
   onOpenPage: (_pageId: string) => void;
   className?: string;
@@ -53,34 +53,34 @@ export interface LocationViewProps {
 
 export function LocationView({
   workspaceId,
-  databasePageId,
+  sectionNodeId,
   userId,
   onOpenPage,
   className,
 }: LocationViewProps): React.ReactElement {
   const [mapReady, setMapReady] = useState(false);
 
-  const setContext = useTableViewStore((s) => s.setContext);
-  const fetchSchemas = useTableViewStore((s) => s.fetchSchemas);
-  const fetchProperties = useTableViewStore((s) => s.fetchProperties);
-  const schemas = useTableViewStore((s) => s.schemas);
-  const propertiesByPage = useTableViewStore((s) => s.propertiesByPage);
-  const sort = useTableViewStore((s) => s.sort);
-  const updatePropertyValue = useTableViewStore((s) => s.updatePropertyValue);
+  const setContext = useGridViewStore((s) => s.setContext);
+  const fetchSchemas = useGridViewStore((s) => s.fetchSchemas);
+  const fetchProperties = useGridViewStore((s) => s.fetchProperties);
+  const schemas = useGridViewStore((s) => s.schemas);
+  const propertiesByNode = useGridViewStore((s) => s.propertiesByNode);
+  const sort = useGridViewStore((s) => s.sort);
+  const updatePropertyValue = useGridViewStore((s) => s.updatePropertyValue);
 
-  const pagesById = usePageTreeStore((s) => s.pagesById);
-  const childIdsByParent = usePageTreeStore((s) => s.childIdsByParent);
+  const nodesById = useSectionTreeStore((s) => s.nodesById);
+  const childIdsByParent = useSectionTreeStore((s) => s.childIdsByParent);
   const childIds = useMemo(
     () =>
-      childIdsByParent[databasePageId] ??
+      childIdsByParent[sectionNodeId] ??
       childIdsByParent["root"] ??
       EMPTY_IDS,
-    [childIdsByParent, databasePageId]
+    [childIdsByParent, sectionNodeId]
   );
-  const addChildPageOptimistic = usePageTreeStore(
-    (s) => s.addChildPageOptimistic
+  const addChildNodeOptimistic = useSectionTreeStore(
+    (s) => s.addChildNodeOptimistic
   );
-  const persistNewPage = usePageTreeStore((s) => s.persistNewPage);
+  const persistNewNode = useSectionTreeStore((s) => s.persistNewNode);
 
   const locationPropertyId = useLocationViewStore((s) => s.locationPropertyId);
   const searchQuery = useLocationViewStore((s) => s.searchQuery);
@@ -96,9 +96,9 @@ export function LocationView({
   const setAddPinMode = useLocationViewStore((s) => s.setAddPinMode);
 
   useEffect(() => {
-    setContext(workspaceId, databasePageId);
+    setContext(workspaceId, sectionNodeId);
     void fetchSchemas();
-  }, [workspaceId, databasePageId, setContext, fetchSchemas]);
+  }, [workspaceId, sectionNodeId, setContext, fetchSchemas]);
 
   const childIdsKey = childIds.join(",");
   useEffect(() => {
@@ -130,15 +130,15 @@ export function LocationView({
     : null;
 
   const rows = useMemo(
-    (): PageRow[] =>
+    (): NodeRow[] =>
       getSortedDatabaseRows(
         childIds,
-        pagesById,
-        propertiesByPage,
+        nodesById,
+        propertiesByNode,
         schemaMap,
         sort
       ),
-    [childIds, pagesById, propertiesByPage, schemaMap, sort]
+    [childIds, nodesById, propertiesByNode, schemaMap, sort]
   );
 
   const previewSchemas = useMemo(() => {
@@ -153,12 +153,12 @@ export function LocationView({
     if (!locationSchema) return [];
     return buildLocationEntries(
       rows,
-      propertiesByPage,
+      propertiesByNode,
       locationSchema,
       previewSchemas,
       4
     );
-  }, [rows, propertiesByPage, locationSchema, previewSchemas]);
+  }, [rows, propertiesByNode, locationSchema, previewSchemas]);
 
   const visibleMapEntries = useMemo(
     () => filterLocationEntries(mapEntries, searchQuery),
@@ -197,19 +197,19 @@ export function LocationView({
           return;
         }
 
-        const pageId = addChildPageOptimistic(databasePageId, userId);
+        const pageId = addChildNodeOptimistic(sectionNodeId, userId);
         if (!pageId) {
           toast.error("Could not create page");
           return;
         }
-        await persistNewPage(pageId);
+        await persistNewNode(pageId);
         await updatePropertyValue(
           pageId,
           locationSchema.name,
           "location",
           data.location
         );
-        toast.success("Entry added at pin");
+        toast.success("Article added at pin");
         setAddPinMode(false);
         setHighlightedPageId(pageId);
         void fetchProperties([pageId]);
@@ -219,10 +219,10 @@ export function LocationView({
     },
     [
       locationSchema,
-      databasePageId,
+      sectionNodeId,
       userId,
-      addChildPageOptimistic,
-      persistNewPage,
+      addChildNodeOptimistic,
+      persistNewNode,
       updatePropertyValue,
       setAddPinMode,
       setHighlightedPageId,

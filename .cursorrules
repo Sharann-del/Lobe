@@ -1,12 +1,28 @@
-# Project: Lobe (Notion Superset)
+# Project: Lobe — Personal Knowledge OS
 # Stack: Next.js 14, TypeScript strict, Tailwind + CSS vars, Supabase, Zustand
 
-## Rules
+## Terminology (enforce everywhere — no exceptions)
+- 'Section' not 'database' or 'page' when referring to containers with schemas
+- 'Article' not 'page' or 'entry' when referring to leaf documents
+- 'Side panel' not 'sidebar'
+- 'Workspace view' for Space/Time/Mind/Tree/Focus/Atlas/Pulse
+- 'Section view' for Grid/Board/Stream/Gallery/Timeline/Chart/Map/Timetable
+- 'Grid view' not 'table view'
+- 'Board view' not 'kanban'
+- 'Stream view' not 'list view'
+- 'Gallery view' not 'card view'
+- 'Article link' not 'page link'
+- 'Connections' not 'backlinks' (in UI copy)
+- 'Pin' not 'favorite' or 'star'
+- Never use the word 'database' in UI-facing strings
+- Never use the word 'Notion' anywhere in code comments or UI
+
+## Code rules
 - TypeScript: strict mode, no `any`, explicit return types on all functions
 - No inline styles. Use CSS variables via Tailwind arbitrary values: `bg-[var(--bg-2)]`
-- Never use Tailwind color classes (bg-blue-500 etc). Use CSS var classes only.
+- Never use Tailwind color classes (bg-blue-500 etc). CSS var classes only.
 - All Supabase queries: always handle errors, use .throwOnError() or check .error
-- Components: always accept and spread className prop for composability
+- Components: always accept and spread className prop
 - Hooks: prefix with 'use', single responsibility, always cleanup subscriptions
 - File naming: PascalCase components, camelCase utils, kebab-case routes
 - Imports: absolute paths via @/ alias, group: react → next → external → internal → types
@@ -14,6 +30,6 @@
 - Forms: no HTML <form> submit, use controlled state + onClick handlers
 - Animations: framer-motion only, duration < 200ms for micro-interactions
 - Icons: lucide-react only, size prop (not className for size), default 16px
-- Error handling: every async function wrapped in try/catch, errors surfaced to user via toast
-- Zustand stores: one file per domain (pagesStore, uiStore, workspaceStore)
+- Error handling: every async function wrapped in try/catch, errors surfaced via toast
+- Zustand stores: one file per domain (sectionTreeStore, uiStore, workspaceStore)
 - React Query: queryKey arrays follow [resource, id, ...params] pattern

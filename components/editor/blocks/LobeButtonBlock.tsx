@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { useLobeEditorRuntime } from "@/components/editor/lobe-editor-context";
 import { cn } from "@/lib/utils";
 
-type ButtonAction = "openUrl" | "newPageTemplate" | "toggleBelow";
+type ButtonAction = "openUrl" | "newArticleTemplate" | "toggleBelow";
 type ButtonStyle = "outline" | "filled" | "ghost";
 type ButtonIconKey = "none" | "link" | "external" | "filePlus" | "eye" | "arrow";
 
@@ -108,7 +108,7 @@ function LobeButtonBlockInner(props: {
       window.open(u, "_blank", "noopener,noreferrer");
       return;
     }
-    if (p.actionType === "newPageTemplate") {
+    if (p.actionType === "newArticleTemplate") {
       const tpl = p.templatePageId.trim();
       if (runtime.onNewPageFromTemplate) {
         runtime.onNewPageFromTemplate(tpl);
@@ -175,7 +175,7 @@ function LobeButtonBlockInner(props: {
               }
             >
               <option value="openUrl">Open URL</option>
-              <option value="newPageTemplate">New page (template)</option>
+              <option value="newArticleTemplate">New page (template)</option>
               <option value="toggleBelow">Toggle block below</option>
             </select>
           </label>
@@ -190,7 +190,7 @@ function LobeButtonBlockInner(props: {
               />
             </label>
           ) : null}
-          {p.actionType === "newPageTemplate" ? (
+          {p.actionType === "newArticleTemplate" ? (
             <label className="flex min-w-[180px] flex-1 flex-col gap-1 text-[10px] uppercase tracking-wide text-[var(--text-tertiary)]">
               Template page ID
               <input
@@ -263,7 +263,7 @@ export const lobeButtonBlock = createReactBlockSpec(
       },
       actionType: {
         default: "openUrl" as const,
-        values: ["openUrl", "newPageTemplate", "toggleBelow"],
+        values: ["openUrl", "newArticleTemplate", "toggleBelow"],
       },
       url: { default: "" },
       templatePageId: { default: "" },

@@ -71,8 +71,6 @@ export function ReminderQuickCreate({
     if (!title.trim()) return;
 
     const insert: ReminderInsert = {
-      workspace_id: "",
-      user_id: "",
       title: title.trim(),
       date: format(date, "yyyy-MM-dd"),
       start_time: timeStart || null,

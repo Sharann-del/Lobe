@@ -245,7 +245,7 @@ export function getLobeSlashMenuItems(
         }),
     },
     {
-      title: "Page cards",
+      title: "Article cards",
       group: "Advanced",
       aliases: ["preview pages", "grid pages"],
       icon: slashIcon(<LayoutGrid size={18} />),
@@ -343,7 +343,7 @@ export function getLobeSlashMenuItems(
         ] as never),
     },
     {
-      title: "Page link",
+      title: "Article link",
       group: "Inline",
       aliases: ["[[", "wiki", "link page"],
       icon: slashIcon(<Link2 size={18} />),
@@ -351,7 +351,7 @@ export function getLobeSlashMenuItems(
         editor.insertInlineContent([
           {
             type: "pageLink",
-            props: { pageId: "", title: "Linked page", icon: "📄" },
+            props: { pageId: "", title: "Linked article", icon: "📄" },
           },
         ] as never),
     },

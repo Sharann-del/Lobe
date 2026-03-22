@@ -1,4 +1,4 @@
--- Reminder events: lightweight calendar events (not database entries / pages).
+-- Reminder events: lightweight calendar events (not articles).
 
 CREATE TYPE public.reminder_color AS ENUM (
   'red', 'orange', 'yellow', 'green', 'teal', 'blue', 'purple', 'pink', 'gray'
@@ -24,7 +24,7 @@ CREATE TABLE public.reminder_events (
 );
 
 COMMENT ON TABLE public.reminder_events IS
-  'Lightweight calendar reminder events (distinct from pages / database entries).';
+  'Lightweight calendar reminder events (distinct from articles).';
 
 CREATE INDEX reminder_events_workspace_date_idx
   ON public.reminder_events (workspace_id, date);

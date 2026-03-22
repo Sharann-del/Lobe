@@ -2,11 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { CommandPalette } from "@/components/command";
+import { WorkspaceViewBar } from "@/components/nav";
 import {
-  SidebarRoot,
-  SidebarWorkspaceProvider,
-  type SidebarWorkspaceOption,
-} from "@/components/sidebar";
+  SidePanelRoot,
+  SidePanelWorkspaceProvider,
+  type SidePanelWorkspaceOption,
+} from "@/components/side-panel";
 
 export function WorkspaceShell({
   userId,
@@ -15,7 +16,7 @@ export function WorkspaceShell({
   children,
 }: {
   userId: string;
-  workspaces: SidebarWorkspaceOption[];
+  workspaces: SidePanelWorkspaceOption[];
   activeWorkspaceId: string;
   children: React.ReactNode;
 }) {
@@ -31,7 +32,7 @@ export function WorkspaceShell({
   }
 
   return (
-    <SidebarWorkspaceProvider
+    <SidePanelWorkspaceProvider
       value={{
         workspaceId: activeWs.id,
         workspaceSlug: activeWs.slug,
@@ -40,22 +41,27 @@ export function WorkspaceShell({
         userId,
       }}
     >
-      <div className="flex h-screen min-h-0 w-full bg-bg-0">
-        <SidebarRoot
-          workspaces={workspaces}
-          activeWorkspaceId={activeWorkspaceId}
-          userId={userId}
-          onWorkspaceChange={(id) => {
-            const w = workspaces.find((x) => x.id === id);
-            if (w) {
-              router.push(`/${w.slug}`);
-            }
-          }}
-          onCreateWorkspace={() => undefined}
-        />
-        <main className="min-h-0 min-w-0 flex-1 overflow-auto">{children}</main>
+      <div className="flex h-screen min-h-0 w-full flex-col bg-bg-0">
+        <WorkspaceViewBar />
+        <div className="flex min-h-0 flex-1">
+          <SidePanelRoot
+            workspaces={workspaces}
+            activeWorkspaceId={activeWorkspaceId}
+            userId={userId}
+            onWorkspaceChange={(id) => {
+              const w = workspaces.find((x) => x.id === id);
+              if (w) {
+                router.push(`/${w.slug}`);
+              }
+            }}
+            onCreateWorkspace={() => undefined}
+          />
+          <main className="min-h-0 min-w-0 flex-1 overflow-auto">
+            {children}
+          </main>
+        </div>
         <CommandPalette />
       </div>
-    </SidebarWorkspaceProvider>
+    </SidePanelWorkspaceProvider>
   );
 }

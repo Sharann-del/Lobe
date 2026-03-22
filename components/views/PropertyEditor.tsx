@@ -35,8 +35,8 @@ import {
 } from "@/components/ui/Popover";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
-import { useDatabaseStore } from "@/lib/stores/databaseStore";
-import type { DatabaseSchemaField } from "@/lib/types/pages";
+import { useSectionStore } from "@/lib/stores/sectionStore";
+import type { SectionSchemaField } from "@/lib/types/nodes";
 import type { PropertyValueType } from "@/lib/types/properties";
 import type { BadgeColor } from "@/components/ui/Badge";
 import {
@@ -78,11 +78,11 @@ export function PropertyEditor({
   open,
   onOpenChange,
 }: PropertyEditorProps): JSX.Element {
-  const schema = useDatabaseStore((s) => s.schema);
-  const addSchemaField = useDatabaseStore((s) => s.addSchemaField);
-  const updateSchemaField = useDatabaseStore((s) => s.updateSchemaField);
-  const removeSchemaField = useDatabaseStore((s) => s.removeSchemaField);
-  const reorderSchemaField = useDatabaseStore((s) => s.reorderSchemaField);
+  const schema = useSectionStore((s) => s.schema);
+  const addSchemaField = useSectionStore((s) => s.addSchemaField);
+  const updateSchemaField = useSectionStore((s) => s.updateSchemaField);
+  const removeSchemaField = useSectionStore((s) => s.removeSchemaField);
+  const reorderSchemaField = useSectionStore((s) => s.reorderSchemaField);
 
   const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -96,7 +96,7 @@ export function PropertyEditor({
 
   const handleAddProperty = useCallback(
     (type: PropertyValueType): void => {
-      const field: DatabaseSchemaField = {
+      const field: SectionSchemaField = {
         id: crypto.randomUUID(),
         name: PROPERTY_TYPE_LABELS[type],
         type,
@@ -124,7 +124,7 @@ export function PropertyEditor({
   }, [deleteConfirmId, editingFieldId, removeSchemaField]);
 
   const handleReorder = useCallback(
-    (reordered: DatabaseSchemaField[]): void => {
+    (reordered: SectionSchemaField[]): void => {
       const oldIndex = schema.findIndex(
         (f) => f.id !== reordered[schema.indexOf(f)]?.id
       );
@@ -320,8 +320,8 @@ export function PropertyEditor({
 /* -------------------------------------------------------------------------- */
 
 interface FieldEditorProps {
-  field: DatabaseSchemaField;
-  onUpdate: (updates: Partial<DatabaseSchemaField>) => void;
+  field: SectionSchemaField;
+  onUpdate: (updates: Partial<SectionSchemaField>) => void;
   onDelete: () => void;
 }
 

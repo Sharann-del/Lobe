@@ -1,7 +1,7 @@
 export { useAuth } from "./useAuth";
 export { useUser } from "./useUser";
 export type { UseUserResult } from "./useUser";
-export { usePagesRealtime } from "./usePagesRealtime";
+export { useNodesRealtime } from "./useNodesRealtime";
 export type {
   AuthActionResult,
   SignUpResult,

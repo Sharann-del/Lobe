@@ -1,7 +1,7 @@
 import { format, parseISO, startOfDay } from "date-fns";
-import type { PageRow } from "@/lib/types/pages";
+import type { NodeRow } from "@/lib/types/nodes";
 import type {
-  PageProperty,
+  NodeProperty,
   PropertySchema,
   SelectOption,
   PersonValue,
@@ -133,7 +133,7 @@ function colorMetaForKey(
 }
 
 function getNumericFromRow(
-  props: PageProperty[],
+  props: NodeProperty[],
   valueSchema: PropertySchema | null,
   aggregation: GraphAggregation
 ): number | null {
@@ -230,7 +230,7 @@ function sourceKeyAndLabel(
 
 function colorKeyFromRow(
   colorSchema: PropertySchema | null,
-  props: PageProperty[]
+  props: NodeProperty[]
 ): { key: string; label: string } {
   if (!colorSchema) {
     return { key: SINGLE_SERIES_KEY, label: "Value" };
@@ -253,8 +253,8 @@ function colorKeyFromRow(
 }
 
 export function buildGraphSeries(
-  rows: PageRow[],
-  propertiesByPage: Record<string, PageProperty[]>,
+  rows: NodeRow[],
+  propertiesByNode: Record<string, NodeProperty[]>,
   sourceSchema: PropertySchema,
   valueSchema: PropertySchema | null,
   colorSchema: PropertySchema | null,
@@ -264,7 +264,7 @@ export function buildGraphSeries(
   const bucket = new Map<string, BucketState>();
 
   for (const row of rows) {
-    const props = propertiesByPage[row.id] ?? [];
+    const props = propertiesByNode[row.id] ?? [];
     const srcProp = props.find((p) => p.key === sourceSchema.name);
     const src = sourceKeyAndLabel(
       sourceSchema,

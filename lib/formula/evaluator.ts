@@ -42,61 +42,78 @@ function toDate(v: FormulaResult): Date {
   return new Date();
 }
 
+/** Safe indexed read for variadic formula builtins (strict noUncheckedIndexedAccess). */
+function arg(args: FormulaResult[], i: number): FormulaResult {
+  return args[i] ?? null;
+}
+
 const BUILTINS: Record<
   string,
   (args: FormulaResult[]) => FormulaResult
 > = {
-  if: ([cond, t, f]) => (toBool(cond) ? t : f),
-  not: ([v]) => !toBool(v),
-  and: (args) => args.every(toBool),
-  or: (args) => args.some(toBool),
+  if: (args) => (toBool(arg(args, 0)) ? arg(args, 1) : arg(args, 2)),
+  not: (args) => !toBool(arg(args, 0)),
+  and: (args) => args.every((a) => toBool(a)),
+  or: (args) => args.some((a) => toBool(a)),
 
-  add: ([a, b]) => toNum(a) + toNum(b),
-  subtract: ([a, b]) => toNum(a) - toNum(b),
-  multiply: ([a, b]) => toNum(a) * toNum(b),
-  divide: ([a, b]) => {
-    const d = toNum(b);
-    return d === 0 ? 0 : toNum(a) / d;
+  add: (args) => toNum(arg(args, 0)) + toNum(arg(args, 1)),
+  subtract: (args) => toNum(arg(args, 0)) - toNum(arg(args, 1)),
+  multiply: (args) => toNum(arg(args, 0)) * toNum(arg(args, 1)),
+  divide: (args) => {
+    const d = toNum(arg(args, 1));
+    return d === 0 ? 0 : toNum(arg(args, 0)) / d;
   },
-  mod: ([a, b]) => toNum(a) % toNum(b),
-  pow: ([a, b]) => Math.pow(toNum(a), toNum(b)),
-  abs: ([v]) => Math.abs(toNum(v)),
-  ceil: ([v]) => Math.ceil(toNum(v)),
-  floor: ([v]) => Math.floor(toNum(v)),
-  round: ([v]) => Math.round(toNum(v)),
-  sqrt: ([v]) => Math.sqrt(toNum(v)),
-  log: ([v]) => Math.log(toNum(v)),
-  exp: ([v]) => Math.exp(toNum(v)),
+  mod: (args) => toNum(arg(args, 0)) % toNum(arg(args, 1)),
+  pow: (args) => Math.pow(toNum(arg(args, 0)), toNum(arg(args, 1))),
+  abs: (args) => Math.abs(toNum(arg(args, 0))),
+  ceil: (args) => Math.ceil(toNum(arg(args, 0))),
+  floor: (args) => Math.floor(toNum(arg(args, 0))),
+  round: (args) => Math.round(toNum(arg(args, 0))),
+  sqrt: (args) => Math.sqrt(toNum(arg(args, 0))),
+  log: (args) => Math.log(toNum(arg(args, 0))),
+  exp: (args) => Math.exp(toNum(arg(args, 0))),
 
-  length: ([v]) => toStr(v).length,
-  slice: ([s, start, end]) =>
-    toStr(s).slice(toNum(start), end !== null && end !== undefined ? toNum(end) : undefined),
-  contains: ([s, sub]) => toStr(s).includes(toStr(sub)),
-  startsWith: ([s, sub]) => toStr(s).startsWith(toStr(sub)),
-  endsWith: ([s, sub]) => toStr(s).endsWith(toStr(sub)),
-  replace: ([s, from, to]) => toStr(s).replace(toStr(from), toStr(to)),
-  replaceAll: ([s, from, to]) => toStr(s).replaceAll(toStr(from), toStr(to)),
-  lower: ([v]) => toStr(v).toLowerCase(),
-  upper: ([v]) => toStr(v).toUpperCase(),
-  trim: ([v]) => toStr(v).trim(),
-  split: ([s, sep]) => toStr(s).split(toStr(sep)).join(", "),
-  join: ([arr, sep]) => toStr(arr).split(", ").join(toStr(sep)),
+  length: (args) => toStr(arg(args, 0)).length,
+  slice: (args) => {
+    const endRaw = arg(args, 2);
+    return toStr(arg(args, 0)).slice(
+      toNum(arg(args, 1)),
+      endRaw !== null && endRaw !== undefined ? toNum(endRaw) : undefined
+    );
+  },
+  contains: (args) =>
+    toStr(arg(args, 0)).includes(toStr(arg(args, 1))),
+  startsWith: (args) =>
+    toStr(arg(args, 0)).startsWith(toStr(arg(args, 1))),
+  endsWith: (args) =>
+    toStr(arg(args, 0)).endsWith(toStr(arg(args, 1))),
+  replace: (args) =>
+    toStr(arg(args, 0)).replace(toStr(arg(args, 1)), toStr(arg(args, 2))),
+  replaceAll: (args) =>
+    toStr(arg(args, 0)).replaceAll(toStr(arg(args, 1)), toStr(arg(args, 2))),
+  lower: (args) => toStr(arg(args, 0)).toLowerCase(),
+  upper: (args) => toStr(arg(args, 0)).toUpperCase(),
+  trim: (args) => toStr(arg(args, 0)).trim(),
+  split: (args) =>
+    toStr(arg(args, 0)).split(toStr(arg(args, 1))).join(", "),
+  join: (args) =>
+    toStr(arg(args, 0)).split(", ").join(toStr(arg(args, 1))),
 
-  toNumber: ([v]) => toNum(v),
-  toString: ([v]) => toStr(v),
-  toDate: ([v]) => toDate(v),
+  toNumber: (args: FormulaResult[]) => toNum(arg(args, 0)),
+  toString: (args: FormulaResult[]) => toStr(arg(args, 0)),
+  toDate: (args: FormulaResult[]) => toDate(arg(args, 0)),
 
-  now: () => new Date(),
-  today: () => {
+  now: (_args: FormulaResult[]) => new Date(),
+  today: (_args: FormulaResult[]) => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
     return d;
   },
 
-  dateAdd: ([d, amount, unit]) => {
-    const date = toDate(d);
-    const n = toNum(amount);
-    const u = toStr(unit);
+  dateAdd: (args) => {
+    const date = toDate(arg(args, 0));
+    const n = toNum(arg(args, 1));
+    const u = toStr(arg(args, 2));
     switch (u) {
       case "hours":
         return addHours(date, n);
@@ -111,10 +128,10 @@ const BUILTINS: Record<
     }
   },
 
-  dateBetween: ([a, b, unit]) => {
-    const da = toDate(a);
-    const db = toDate(b);
-    const u = toStr(unit);
+  dateBetween: (args) => {
+    const da = toDate(arg(args, 0));
+    const db = toDate(arg(args, 1));
+    const u = toStr(arg(args, 2));
     switch (u) {
       case "hours":
         return differenceInHours(da, db);
@@ -129,19 +146,19 @@ const BUILTINS: Record<
     }
   },
 
-  formatDate: ([d, fmt]) => {
+  formatDate: (args) => {
     try {
-      return fnsFormat(toDate(d), toStr(fmt));
+      return fnsFormat(toDate(arg(args, 0)), toStr(arg(args, 1)));
     } catch {
-      return toStr(d);
+      return toStr(arg(args, 0));
     }
   },
 
-  month: ([d]) => getMonth(toDate(d)) + 1,
-  year: ([d]) => getYear(toDate(d)),
-  day: ([d]) => getDate(toDate(d)),
-  hour: ([d]) => getHours(toDate(d)),
-  minute: ([d]) => getMinutes(toDate(d)),
+  month: (args) => getMonth(toDate(arg(args, 0))) + 1,
+  year: (args) => getYear(toDate(arg(args, 0))),
+  day: (args) => getDate(toDate(arg(args, 0))),
+  hour: (args) => getHours(toDate(arg(args, 0))),
+  minute: (args) => getMinutes(toDate(arg(args, 0))),
 };
 
 function evalBinaryOp(

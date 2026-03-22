@@ -1,5 +1,5 @@
-import type { PageRow } from "@/lib/types/pages";
-import type { PageProperty } from "@/lib/types/properties";
+import type { NodeRow } from "@/lib/types/nodes";
+import type { NodeProperty } from "@/lib/types/properties";
 import type { ReminderOccurrence } from "@/lib/types/reminders";
 
 export const CALENDAR_VIEWS = [
@@ -25,7 +25,7 @@ export const HOUR_HEIGHT_PX = 60;
 export const QUARTER_HEIGHT_PX = HOUR_HEIGHT_PX / 4;
 
 export interface CalendarPageEvent {
-  page: PageRow;
+  page: NodeRow;
   date: string;
   startTime: string | null;
   endTime: string | null;
@@ -44,12 +44,13 @@ export interface CalendarItem {
   isChecked: boolean;
   pageId: string | null;
   reminderId: string | null;
+  occurrenceDate: string | null;
   isAllDay: boolean;
 }
 
 export function pageEventToCalendarItem(
-  page: PageRow,
-  dateProperty: PageProperty | undefined,
+  page: NodeRow,
+  dateProperty: NodeProperty | undefined,
   colorVar: string
 ): CalendarItem | null {
   const dateVal = dateProperty?.value;
@@ -69,6 +70,7 @@ export function pageEventToCalendarItem(
     isChecked: false,
     pageId: page.id,
     reminderId: null,
+    occurrenceDate: null,
     isAllDay: true,
   };
 }
@@ -89,6 +91,7 @@ export function reminderToCalendarItem(
     isChecked: e.is_checked,
     pageId: null,
     reminderId: e.id,
+    occurrenceDate: occ.occurrenceDate,
     isAllDay: !e.start_time,
   };
 }

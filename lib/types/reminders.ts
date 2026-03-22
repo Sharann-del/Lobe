@@ -22,6 +22,7 @@ export interface RecurrenceRule {
   days_of_week: number[];
   end_date: string | null;
   count: number | null;
+  excluded_dates?: string[];
   created_at: string;
   updated_at: string;
 }
@@ -43,9 +44,11 @@ export interface ReminderEvent {
 
 export type ReminderInsert = Omit<
   ReminderEvent,
-  "id" | "created_at" | "updated_at" | "recurrence_rule"
+  "id" | "workspace_id" | "user_id" | "created_at" | "updated_at" | "recurrence_rule"
 > & {
   id?: string;
+  workspace_id?: string;
+  user_id?: string;
   recurrence_rule?: Omit<RecurrenceRule, "id" | "event_id" | "created_at" | "updated_at"> | null;
 };
 

@@ -33,7 +33,7 @@ export function LocationSidePanel({
         <div className="flex flex-col p-1">
           {entries.length === 0 && (
             <p className="px-2 py-4 text-center text-xs text-[var(--text-tertiary)]">
-              No matching entries
+              No matching articles
             </p>
           )}
           {entries.map((e) => {

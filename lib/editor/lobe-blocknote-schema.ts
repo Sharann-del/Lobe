@@ -18,14 +18,14 @@ import { lobeExtendedFileBlock } from "@/components/editor/blocks/LobeExtendedFi
 import { lobeExtendedImageBlock } from "@/components/editor/blocks/LobeExtendedImage";
 import { lobeExtendedVideoBlock } from "@/components/editor/blocks/LobeExtendedVideo";
 import { lobeMathBlock } from "@/components/editor/blocks/LobeMathBlock";
-import { lobePagePreviewSectionBlock } from "@/components/editor/blocks/LobePagePreviewSectionBlock";
+import { lobePagePreviewSectionBlock } from "@/components/editor/blocks/LobeArticlePreviewSectionBlock";
 import { lobeSimpleTableBlock } from "@/components/editor/blocks/LobeSimpleTableBlock";
 import { lobeSyncedBlock } from "@/components/editor/blocks/LobeSyncedBlock";
 import { lobeTocBlock } from "@/components/editor/blocks/LobeTocBlock";
 import { lobeTodoSectionBlock } from "@/components/editor/blocks/LobeTodoSectionBlock";
 import { lobeMathInline } from "@/components/editor/inlines/LobeMathInline";
 import { lobeMentionInline } from "@/components/editor/inlines/LobeMentionInline";
-import { lobePageLinkInline } from "@/components/editor/inlines/LobePageLinkInline";
+import { lobePageLinkInline } from "@/components/editor/inlines/LobeArticleLinkInline";
 import {
   LOBE_SUPPORTED_LANGUAGES,
   createLobeCodeHighlighter,

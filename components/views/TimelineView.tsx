@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { format, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils/cn";
-import { useTableViewStore } from "@/lib/stores/tableViewStore";
+import { useGridViewStore } from "@/lib/stores/gridViewStore";
 import { useTimelineViewStore } from "@/lib/stores/timelineViewStore";
-import { usePageTreeStore } from "@/lib/stores/pageTreeStore";
+import { useSectionTreeStore } from "@/lib/stores/sectionTreeStore";
 import {
   getHeaderGroups,
   getTimelineColumns,
@@ -19,7 +19,7 @@ import {
   SIDEBAR_WIDTH_PX,
 } from "@/lib/types/timeline";
 import type { TimelineBarData } from "@/lib/types/timeline";
-import type { PageRow } from "@/lib/types/pages";
+import type { NodeRow } from "@/lib/types/nodes";
 import type { PropertySchema, SelectOption } from "@/lib/types/properties";
 import { TimelineHeader } from "./timeline/TimelineHeader";
 import { TimelineBar } from "./timeline/TimelineBar";
@@ -35,7 +35,7 @@ const COLUMN_COUNT = 60;
 
 export interface TimelineViewProps {
   workspaceId: string;
-  databasePageId: string;
+  sectionNodeId: string;
   userId: string;
   onOpenPage: (pageId: string) => void;
   className?: string;
@@ -43,7 +43,7 @@ export interface TimelineViewProps {
 
 export function TimelineView({
   workspaceId,
-  databasePageId,
+  sectionNodeId,
   userId,
   onOpenPage,
   className,
@@ -51,21 +51,21 @@ export function TimelineView({
   const gridRef = useRef<HTMLDivElement>(null);
   const [depDragFrom, setDepDragFrom] = useState<string | null>(null);
 
-  const setTableContext = useTableViewStore((s) => s.setContext);
-  const fetchSchemas = useTableViewStore((s) => s.fetchSchemas);
-  const fetchProperties = useTableViewStore((s) => s.fetchProperties);
-  const schemas = useTableViewStore((s) => s.schemas);
-  const propertiesByPage = useTableViewStore((s) => s.propertiesByPage);
-  const updatePropertyValue = useTableViewStore((s) => s.updatePropertyValue);
+  const setTableContext = useGridViewStore((s) => s.setContext);
+  const fetchSchemas = useGridViewStore((s) => s.fetchSchemas);
+  const fetchProperties = useGridViewStore((s) => s.fetchProperties);
+  const schemas = useGridViewStore((s) => s.schemas);
+  const propertiesByNode = useGridViewStore((s) => s.propertiesByNode);
+  const updatePropertyValue = useGridViewStore((s) => s.updatePropertyValue);
 
-  const pagesById = usePageTreeStore((s) => s.pagesById);
-  const childIdsByParent = usePageTreeStore((s) => s.childIdsByParent);
+  const nodesById = useSectionTreeStore((s) => s.nodesById);
+  const childIdsByParent = useSectionTreeStore((s) => s.childIdsByParent);
   const childIds = useMemo(
     () =>
-      childIdsByParent[databasePageId] ??
+      childIdsByParent[sectionNodeId] ??
       childIdsByParent["root"] ??
       EMPTY_IDS,
-    [childIdsByParent, databasePageId]
+    [childIdsByParent, sectionNodeId]
   );
 
   const zoom = useTimelineViewStore((s) => s.zoom);
@@ -99,13 +99,13 @@ export function TimelineView({
   const deleteDependency = useTimelineViewStore((s) => s.deleteDependency);
 
   useEffect(() => {
-    setTableContext(workspaceId, databasePageId);
+    setTableContext(workspaceId, sectionNodeId);
     setWorkspaceId(workspaceId);
     void fetchSchemas();
     void fetchDependencies();
   }, [
     workspaceId,
-    databasePageId,
+    sectionNodeId,
     setTableContext,
     setWorkspaceId,
     fetchSchemas,
@@ -152,16 +152,16 @@ export function TimelineView({
   );
 
   const rows = useMemo(
-    (): PageRow[] =>
+    (): NodeRow[] =>
       childIds
-        .map((id) => pagesById[id])
-        .filter((p): p is PageRow => !!p && !p.is_deleted),
-    [childIds, pagesById]
+        .map((id) => nodesById[id])
+        .filter((p): p is NodeRow => !!p && !p.is_deleted),
+    [childIds, nodesById]
   );
 
   const bars = useMemo((): TimelineBarData[] => {
     return rows.map((page) => {
-      const props = propertiesByPage[page.id] ?? [];
+      const props = propertiesByNode[page.id] ?? [];
 
       const startProp = startDateSchema
         ? props.find((p) => p.key === startDateSchema.name)
@@ -211,7 +211,7 @@ export function TimelineView({
         groupKey,
       };
     });
-  }, [rows, propertiesByPage, startDateSchema, endDateSchema, colorBySchema, groupBySchema]);
+  }, [rows, propertiesByNode, startDateSchema, endDateSchema, colorBySchema, groupBySchema]);
 
   const { sidebarGroups, visibleBars, barRowIndices } = useMemo(() => {
     if (!groupBySchema) {

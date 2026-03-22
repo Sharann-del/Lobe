@@ -33,8 +33,8 @@ export function RelationEditor({
           Related database
         </label>
         <select
-          value={config.targetDatabaseId ?? ""}
-          onChange={(e) => update({ targetDatabaseId: e.target.value })}
+          value={config.targetSectionId ?? ""}
+          onChange={(e) => update({ targetSectionId: e.target.value })}
           className="rounded-[var(--radius-sm)] bg-[var(--bg-2)] px-2 py-1.5 text-xs text-[var(--text-primary)] outline-none"
         >
           <option value="">Select a database…</option>

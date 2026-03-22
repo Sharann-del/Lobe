@@ -304,7 +304,7 @@ AS $$
 $$;
 
 -- ---------------------------------------------------------------------------
--- RPC: page tree (respects RLS when used as SECURITY INVOKER)
+-- RPC: section tree (respects RLS when used as SECURITY INVOKER)
 -- ---------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION public.get_page_tree(p_workspace_id uuid)

@@ -1,0 +1,1 @@
+export { WorkspaceViewBar } from "./WorkspaceViewBar";

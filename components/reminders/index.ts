@@ -3,4 +3,4 @@ export { ReminderQuickCreate } from "./ReminderQuickCreate";
 export { ReminderEditPanel } from "./ReminderEditPanel";
 export { ReminderColorPicker } from "./ReminderColorPicker";
 export { RecurrenceScopeDialog } from "./RecurrenceScopeDialog";
-export { SidebarReminders } from "./SidebarReminders";
+export { SidePanelReminders } from "./SidePanelReminders";

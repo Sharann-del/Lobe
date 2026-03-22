@@ -45,7 +45,7 @@ export function RelationPicker({
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search entries…"
+          placeholder="Search articles…"
           className="flex-1 bg-transparent text-xs text-[var(--text-primary)] outline-none placeholder:text-[var(--text-placeholder)]"
         />
       </div>

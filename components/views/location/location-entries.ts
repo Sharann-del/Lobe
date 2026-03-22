@@ -1,9 +1,9 @@
-import type { PageRow } from "@/lib/types/pages";
-import type { PageProperty, PropertySchema } from "@/lib/types/properties";
+import type { NodeRow } from "@/lib/types/nodes";
+import type { NodeProperty, PropertySchema } from "@/lib/types/properties";
 import { parseLocationValue } from "@/lib/location/location-value";
 
 export interface LocationMapEntry {
-  page: PageRow;
+  page: NodeRow;
   locationPropertyKey: string;
   lat: number;
   lng: number;
@@ -12,8 +12,8 @@ export interface LocationMapEntry {
 }
 
 export function buildLocationEntries(
-  rows: PageRow[],
-  propertiesByPage: Record<string, PageProperty[]>,
+  rows: NodeRow[],
+  propertiesByNode: Record<string, NodeProperty[]>,
   locationSchema: PropertySchema,
   previewSchemas: PropertySchema[],
   maxQuick: number
@@ -22,7 +22,7 @@ export function buildLocationEntries(
   const key = locationSchema.name;
 
   for (const page of rows) {
-    const props = propertiesByPage[page.id] ?? [];
+    const props = propertiesByNode[page.id] ?? [];
     const locProp = props.find((p) => p.key === key);
     const loc = parseLocationValue(locProp?.value);
     if (!loc) continue;

@@ -21,11 +21,20 @@ export function parse(tokens: FormulaToken[]): FormulaNode {
   let idx = 0;
 
   function peek(): FormulaToken {
-    return tokens[idx];
+    const t = tokens[idx];
+    if (t === undefined) {
+      throw new FormulaParseError("Unexpected end of formula", idx);
+    }
+    return t;
   }
 
   function advance(): FormulaToken {
-    return tokens[idx++];
+    const t = tokens[idx];
+    if (t === undefined) {
+      throw new FormulaParseError("Unexpected end of formula", idx);
+    }
+    idx += 1;
+    return t;
   }
 
   function expect(kind: string): FormulaToken {

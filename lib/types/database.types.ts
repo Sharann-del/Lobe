@@ -1,4 +1,4 @@
-import type { PageRow, PagesInsert, PagesUpdate } from "./pages";
+import type { NodeRow, NodesInsert, NodesUpdate } from "./nodes";
 
 export type Json =
   | string
@@ -24,9 +24,9 @@ export type Database = {
   public: {
     Tables: {
       pages: {
-        Row: PageRow;
-        Insert: PagesInsert;
-        Update: PagesUpdate;
+        Row: NodeRow;
+        Insert: NodesInsert;
+        Update: NodesUpdate;
         Relationships: DbRelationship[];
       };
       profiles: {
@@ -116,7 +116,7 @@ export type Database = {
       };
       get_page_tree: {
         Args: { p_workspace_id: string };
-        Returns: PageRow[];
+        Returns: NodeRow[];
       };
     };
     Enums: {

@@ -21,9 +21,10 @@ import {
 } from "date-fns";
 import { cn } from "@/lib/utils/cn";
 import { useRemindersStore } from "@/lib/stores/remindersStore";
-import { usePageTreeStore } from "@/lib/stores/pageTreeStore";
-import { useTableViewStore } from "@/lib/stores/tableViewStore";
+import { useSectionTreeStore } from "@/lib/stores/sectionTreeStore";
+import { useGridViewStore } from "@/lib/stores/gridViewStore";
 import { ReminderQuickCreate } from "@/components/reminders/ReminderQuickCreate";
+import { ReminderEditPanel } from "@/components/reminders/ReminderEditPanel";
 import { CalendarBase } from "./CalendarBase";
 import { DayView } from "./DayView";
 import { TwoDayView } from "./TwoDayView";
@@ -36,13 +37,13 @@ import {
   type CalendarItem,
   type CalendarViewType,
 } from "@/lib/types/calendar";
-import type { PageRow } from "@/lib/types/pages";
+import type { NodeRow } from "@/lib/types/nodes";
 
 const EMPTY_IDS: string[] = [];
 
 export interface CalendarViewProps {
   workspaceId: string;
-  databasePageId: string;
+  sectionNodeId: string;
   userId: string;
   onOpenPage: (pageId: string) => void;
   className?: string;
@@ -50,7 +51,7 @@ export interface CalendarViewProps {
 
 export function CalendarView({
   workspaceId,
-  databasePageId,
+  sectionNodeId,
   userId,
   onOpenPage,
   className,
@@ -60,34 +61,37 @@ export function CalendarView({
   const [quickCreateDate, setQuickCreateDate] = useState<Date | null>(null);
   const [quickCreateTime, setQuickCreateTime] = useState<string | undefined>();
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
+  const [editingReminderId, setEditingReminderId] = useState<string | null>(null);
+  const [editingOccurrenceDate, setEditingOccurrenceDate] = useState<string | undefined>(
+    undefined
+  );
 
-  const setTableContext = useTableViewStore((s) => s.setContext);
-  const fetchSchemas = useTableViewStore((s) => s.fetchSchemas);
-  const fetchProperties = useTableViewStore((s) => s.fetchProperties);
-  const schemas = useTableViewStore((s) => s.schemas);
-  const propertiesByPage = useTableViewStore((s) => s.propertiesByPage);
+  const setTableContext = useGridViewStore((s) => s.setContext);
+  const fetchSchemas = useGridViewStore((s) => s.fetchSchemas);
+  const fetchProperties = useGridViewStore((s) => s.fetchProperties);
+  const schemas = useGridViewStore((s) => s.schemas);
+  const propertiesByNode = useGridViewStore((s) => s.propertiesByNode);
 
-  const pagesById = usePageTreeStore((s) => s.pagesById);
-  const childIdsByParent = usePageTreeStore((s) => s.childIdsByParent);
+  const nodesById = useSectionTreeStore((s) => s.nodesById);
+  const childIdsByParent = useSectionTreeStore((s) => s.childIdsByParent);
   const childIds = useMemo(
     () =>
-      childIdsByParent[databasePageId] ??
+      childIdsByParent[sectionNodeId] ??
       childIdsByParent["root"] ??
       EMPTY_IDS,
-    [childIdsByParent, databasePageId]
+    [childIdsByParent, sectionNodeId]
   );
 
   const eventsById = useRemindersStore((s) => s.eventsById);
   const getOccurrencesForRange = useRemindersStore(
     (s) => s.getOccurrencesForRange
   );
-  const rescheduleReminder = useRemindersStore((s) => s.reschedule);
   const updateReminder = useRemindersStore((s) => s.updateEvent);
 
   useEffect(() => {
-    setTableContext(workspaceId, databasePageId);
+    setTableContext(workspaceId, sectionNodeId);
     void fetchSchemas();
-  }, [workspaceId, databasePageId, setTableContext, fetchSchemas]);
+  }, [workspaceId, sectionNodeId, setTableContext, fetchSchemas]);
 
   const childIdsKey = childIds.join(",");
   useEffect(() => {
@@ -136,12 +140,12 @@ export function CalendarView({
     const result: CalendarItem[] = [];
 
     const pages = childIds
-      .map((id) => pagesById[id])
-      .filter((p): p is PageRow => !!p && !p.is_deleted);
+      .map((id) => nodesById[id])
+      .filter((p): p is NodeRow => !!p && !p.is_deleted);
 
     if (dateSchema) {
       for (const page of pages) {
-        const props = propertiesByPage[page.id] ?? [];
+        const props = propertiesByNode[page.id] ?? [];
         const dateProp = props.find((p) => p.key === dateSchema.name);
         const item = pageEventToCalendarItem(
           page,
@@ -160,8 +164,8 @@ export function CalendarView({
     return result;
   }, [
     childIds,
-    pagesById,
-    propertiesByPage,
+    nodesById,
+    propertiesByNode,
     dateSchema,
     getOccurrencesForRange,
     rangeStart,
@@ -238,6 +242,11 @@ export function CalendarView({
 
   const handleEventClick = useCallback(
     (item: CalendarItem) => {
+      if (item.reminderId) {
+        setEditingReminderId(item.reminderId);
+        setEditingOccurrenceDate(item.occurrenceDate ?? undefined);
+        return;
+      }
       if (item.pageId) {
         onOpenPage(item.pageId);
       }
@@ -246,11 +255,15 @@ export function CalendarView({
   );
 
   const handleEventDrop = useCallback(
-    (itemId: string, _newDate: string, newTime: string) => {
-      if (itemId.startsWith("reminder-")) {
-        const parts = itemId.replace("reminder-", "").split("-");
-        const reminderId = parts.slice(0, 5).join("-");
-        void updateReminder(reminderId, { start_time: newTime });
+    (itemId: string, newDate: string, newTime: string) => {
+      const parsed = parseReminderItemId(itemId);
+      if (parsed) {
+        void updateReminder(
+          parsed.reminderId,
+          { date: newDate, start_time: newTime },
+          parsed.occurrenceDate ? "this" : "all",
+          parsed.occurrenceDate ?? undefined
+        );
       }
     },
     [updateReminder]
@@ -258,10 +271,14 @@ export function CalendarView({
 
   const handleEventResize = useCallback(
     (itemId: string, newEndTime: string) => {
-      if (itemId.startsWith("reminder-")) {
-        const parts = itemId.replace("reminder-", "").split("-");
-        const reminderId = parts.slice(0, 5).join("-");
-        void updateReminder(reminderId, { end_time: newEndTime });
+      const parsed = parseReminderItemId(itemId);
+      if (parsed) {
+        void updateReminder(
+          parsed.reminderId,
+          { end_time: newEndTime },
+          parsed.occurrenceDate ? "this" : "all",
+          parsed.occurrenceDate ?? undefined
+        );
       }
     },
     [updateReminder]
@@ -358,6 +375,30 @@ export function CalendarView({
           <span className="pointer-events-none fixed left-1/2 top-1/2 h-0 w-0" />
         </ReminderQuickCreate>
       )}
+
+      <ReminderEditPanel
+        eventId={editingReminderId}
+        occurrenceDate={editingOccurrenceDate}
+        open={editingReminderId !== null}
+        onClose={() => {
+          setEditingReminderId(null);
+          setEditingOccurrenceDate(undefined);
+        }}
+      />
     </div>
   );
+}
+
+function parseReminderItemId(
+  itemId: string
+): { reminderId: string; occurrenceDate: string | null } | null {
+  const match =
+    /^reminder-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:-(\d{4}-\d{2}-\d{2}))?$/i.exec(
+      itemId
+    );
+  if (!match) return null;
+  return {
+    reminderId: match[1] ?? "",
+    occurrenceDate: match[2] ?? null,
+  };
 }

@@ -122,8 +122,8 @@ export const useRemindersStore = create<RemindersState>()((set, get) => ({
       const { data, error } = await supabase
         .from("reminder_events")
         .insert({
-          workspace_id: workspaceId,
-          user_id: userId,
+          workspace_id: insert.workspace_id ?? workspaceId,
+          user_id: insert.user_id ?? userId,
           title: insert.title,
           date: insert.date,
           start_time: insert.start_time,
@@ -171,7 +171,7 @@ export const useRemindersStore = create<RemindersState>()((set, get) => ({
     }
   },
 
-  updateEvent: async (id, update, scope = "all", _occurrenceDate) => {
+  updateEvent: async (id, update, scope = "all", occurrenceDate) => {
     const prev = get().eventsById[id];
     if (!prev) return;
 
@@ -196,10 +196,11 @@ export const useRemindersStore = create<RemindersState>()((set, get) => ({
 
         if (update.recurrence_rule !== undefined) {
           if (prev.recurrence_rule) {
-            await supabase
+            const { error: deleteRuleError } = await supabase
               .from("recurrence_rules")
               .delete()
               .eq("event_id", id);
+            if (deleteRuleError) throw deleteRuleError;
           }
           if (update.recurrence_rule) {
             const { data: rrData, error: rrError } = await supabase
@@ -231,17 +232,17 @@ export const useRemindersStore = create<RemindersState>()((set, get) => ({
       return;
     }
 
-    if (scope === "this" && _occurrenceDate) {
-      await splitSingleOccurrence(get, set, prev, _occurrenceDate, update);
+    if (scope === "this" && occurrenceDate) {
+      await splitSingleOccurrence(get, set, prev, occurrenceDate, update);
       return;
     }
 
-    if (scope === "this_and_following" && _occurrenceDate) {
-      await splitFromOccurrence(get, set, prev, _occurrenceDate, update);
+    if (scope === "this_and_following" && occurrenceDate) {
+      await splitFromOccurrence(get, set, prev, occurrenceDate, update);
     }
   },
 
-  deleteEvent: async (id, scope = "all", _occurrenceDate) => {
+  deleteEvent: async (id, scope = "all", occurrenceDate) => {
     const prev = get().eventsById[id];
     if (!prev) return;
 
@@ -264,22 +265,23 @@ export const useRemindersStore = create<RemindersState>()((set, get) => ({
       return;
     }
 
-    if (scope === "this" && _occurrenceDate && prev.recurrence_rule) {
-      await excludeOccurrence(get, set, prev, _occurrenceDate);
+    if (scope === "this" && occurrenceDate && prev.recurrence_rule) {
+      await excludeOccurrence(get, set, prev, occurrenceDate);
       return;
     }
 
-    if (scope === "this_and_following" && _occurrenceDate && prev.recurrence_rule) {
+    if (scope === "this_and_following" && occurrenceDate && prev.recurrence_rule) {
       const supabase = createClient();
       try {
+        const dayBefore = format(addDays(new Date(occurrenceDate), -1), "yyyy-MM-dd");
         const { error } = await supabase
           .from("recurrence_rules")
-          .update({ end_date: _occurrenceDate })
+          .update({ end_date: dayBefore })
           .eq("event_id", id);
         if (error) throw error;
         get().upsertEvent({
           ...prev,
-          recurrence_rule: { ...prev.recurrence_rule, end_date: _occurrenceDate },
+          recurrence_rule: { ...prev.recurrence_rule, end_date: dayBefore },
         });
       } catch (e) {
         set({
@@ -351,6 +353,9 @@ export const useRemindersStore = create<RemindersState>()((set, get) => ({
 
 function normalizeRow(row: Record<string, unknown>): ReminderEvent {
   const rules = row.recurrence_rules as RecurrenceRule[] | null;
+  const recurrenceMeta =
+    (row.recurrence_rule as { excluded_dates?: string[] } | null) ?? null;
+  const primaryRule = rules && rules.length > 0 ? rules[0]! : null;
   return {
     id: row.id as string,
     workspace_id: row.workspace_id as string,
@@ -361,7 +366,9 @@ function normalizeRow(row: Record<string, unknown>): ReminderEvent {
     end_time: (row.end_time as string) ?? null,
     is_checked: row.is_checked as boolean,
     color: row.color as ReminderColor,
-    recurrence_rule: rules && rules.length > 0 ? rules[0]! : null,
+    recurrence_rule: primaryRule
+      ? { ...primaryRule, excluded_dates: recurrenceMeta?.excluded_dates ?? [] }
+      : null,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
   };
@@ -381,9 +388,22 @@ async function splitSingleOccurrence(
 ): Promise<void> {
   const supabase = createClient();
   try {
+    const existingExcluded = event.recurrence_rule?.excluded_dates ?? [];
+    const nextExcluded = Array.from(new Set([...existingExcluded, occurrenceDate]));
+    const { error: excludeError } = await supabase
+      .from("reminder_events")
+      .update({ recurrence_rule: { excluded_dates: nextExcluded } })
+      .eq("id", event.id);
+    if (excludeError) throw excludeError;
+
+    get().upsertEvent({
+      ...event,
+      recurrence_rule: event.recurrence_rule
+        ? { ...event.recurrence_rule, excluded_dates: nextExcluded }
+        : null,
+    });
+
     const oneOff: ReminderInsert = {
-      workspace_id: event.workspace_id,
-      user_id: event.user_id,
       title: update.title ?? event.title,
       date: update.date ?? occurrenceDate,
       start_time: update.start_time !== undefined ? update.start_time : event.start_time,
@@ -432,32 +452,33 @@ async function splitFromOccurrence(
 
   try {
     const dayBefore = format(addDays(new Date(occurrenceDate), -1), "yyyy-MM-dd");
-    await supabase
+    const { error: truncateError } = await supabase
       .from("recurrence_rules")
       .update({ end_date: dayBefore })
       .eq("event_id", event.id);
+    if (truncateError) throw truncateError;
 
     get().upsertEvent({
       ...event,
       recurrence_rule: { ...rule, end_date: dayBefore },
     });
 
+    const nextRule = update.recurrence_rule ?? {
+      frequency: rule.frequency,
+      interval: rule.interval,
+      days_of_week: rule.days_of_week,
+      end_date: rule.end_date,
+      count: rule.count,
+    };
+
     const newInsert: ReminderInsert = {
-      workspace_id: event.workspace_id,
-      user_id: event.user_id,
       title: update.title ?? event.title,
-      date: occurrenceDate,
+      date: update.date ?? occurrenceDate,
       start_time: update.start_time !== undefined ? update.start_time : event.start_time,
       end_time: update.end_time !== undefined ? update.end_time : event.end_time,
       is_checked: update.is_checked ?? event.is_checked,
       color: (update.color ?? event.color) as ReminderColor,
-      recurrence_rule: {
-        frequency: rule.frequency,
-        interval: rule.interval,
-        days_of_week: rule.days_of_week,
-        end_date: rule.end_date,
-        count: rule.count,
-      },
+      recurrence_rule: nextRule,
     };
 
     await get().createEvent(newInsert);
@@ -473,12 +494,14 @@ async function excludeOccurrence(
   get: () => RemindersState,
   set: (partial: Partial<RemindersState> | ((s: RemindersState) => Partial<RemindersState>)) => void,
   event: ReminderEvent,
-  _occurrenceDate: string
+  occurrenceDate: string
 ): Promise<void> {
   const supabase = createClient();
   try {
     const existing = (event.recurrence_rule as RecurrenceRule & { excluded_dates?: string[] }) ?? {};
-    const excluded = [...(existing.excluded_dates ?? []), _occurrenceDate];
+    const excluded = Array.from(
+      new Set([...(existing.excluded_dates ?? []), occurrenceDate])
+    );
     const { error } = await supabase
       .from("reminder_events")
       .update({ recurrence_rule: { ...event.recurrence_rule, excluded_dates: excluded } })
@@ -487,7 +510,7 @@ async function excludeOccurrence(
     get().upsertEvent({
       ...event,
       recurrence_rule: event.recurrence_rule
-        ? { ...event.recurrence_rule }
+        ? { ...event.recurrence_rule, excluded_dates: excluded }
         : null,
     });
   } catch (e) {

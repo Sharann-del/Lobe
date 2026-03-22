@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { WorkspaceHomeClient } from "./workspace-home-client";
 
 /**
- * Workspace root: shows sidebar (from layout) and either redirects to the first
- * page or an empty state so "New page" is discoverable.
+ * Workspace home: default Space workspace view (Phase 3). Articles open under /[pageId].
  */
 export default async function WorkspaceHomePage({
   params,
@@ -31,26 +31,7 @@ export default async function WorkspaceHomePage({
     redirect("/");
   }
 
-  const { data: first } = await supabase
-    .from("pages")
-    .select("id")
-    .eq("workspace_id", ws.id)
-    .eq("is_deleted", false)
-    .order("sort_order", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (first?.id) {
-    redirect(`/${params.workspaceSlug}/${first.id}`);
-  }
-
   return (
-    <div className="p-6 text-sm text-text-secondary">
-      <p className="text-base font-medium text-text-primary">No pages yet</p>
-      <p className="mt-2 max-w-md">
-        Use <span className="text-text-primary">New page</span> in the sidebar
-        to create your first page.
-      </p>
-    </div>
+    <WorkspaceHomeClient workspaceId={ws.id} userId={user.id} />
   );
 }

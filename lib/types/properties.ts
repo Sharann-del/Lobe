@@ -94,7 +94,7 @@ export const DEFAULT_DATE_CONFIG: DateConfig = {
 };
 
 export interface RelationConfig {
-  targetDatabaseId: string;
+  targetSectionId: string;
   bidirectional: boolean;
 }
 
@@ -136,7 +136,7 @@ export interface PropertySchema {
   updated_at: string;
 }
 
-export interface PageProperty {
+export interface NodeProperty {
   id: string;
   page_id: string;
   key: string;

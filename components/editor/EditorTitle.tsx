@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ImagePlus } from "lucide-react";
 import { toast } from "sonner";
 
-import { PageIconPicker } from "@/components/sidebar/PageIconPicker";
+import { NodeIconPicker } from "@/components/side-panel/NodeIconPicker";
 import { Button } from "@/components/ui/Button";
 import {
   Popover,
@@ -26,7 +26,7 @@ export interface EditorTitleProps {
   className?: string;
 }
 
-async function updatePageRow(
+async function updateNodeRow(
   pageId: string,
   patch: Record<string, unknown>,
   expectedUpdatedAt: string
@@ -112,7 +112,7 @@ export function EditorTitle({
     async (nextTitle: string): Promise<void> => {
       const trimmed = nextTitle.trim() || "Untitled";
       try {
-        const row = await updatePageRow(
+        const row = await updateNodeRow(
           pageId,
           { title: trimmed },
           updatedAtRef.current
@@ -158,7 +158,7 @@ export function EditorTitle({
       const previous = iconDisplay;
       setIconDisplay(emoji);
       try {
-        const row = await updatePageRow(
+        const row = await updateNodeRow(
           pageId,
           { icon: emoji, icon_type: "emoji" },
           updatedAtRef.current
@@ -181,7 +181,7 @@ export function EditorTitle({
   const applyCoverUrl = useCallback(
     async (url: string | null) => {
       try {
-        const row = await updatePageRow(
+        const row = await updateNodeRow(
           pageId,
           { cover_url: url },
           updatedAtRef.current
@@ -279,7 +279,7 @@ export function EditorTitle({
           </Popover>
         </div>
 
-        <PageIconPicker
+        <NodeIconPicker
           value={iconDisplay}
           onPick={onPickIcon}
           className="mt-1 shrink-0"
@@ -291,11 +291,11 @@ export function EditorTitle({
               "text-xl text-[var(--text-secondary)] transition-colors duration-fast",
               "hover:bg-[var(--bg-3)] hover:text-[var(--text-primary)]"
             )}
-            aria-label="Choose page icon"
+            aria-label="Choose article icon"
           >
             {iconDisplay ?? "◻"}
           </button>
-        </PageIconPicker>
+        </NodeIconPicker>
 
         <textarea
           ref={textareaRef}

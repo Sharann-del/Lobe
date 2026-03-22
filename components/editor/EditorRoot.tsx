@@ -29,9 +29,9 @@ import {
   clearQueuedPageSave,
   peekQueuedPageSave,
   queuePageContentSave,
-} from "@/lib/editor/offline-page-queue";
+} from "@/lib/editor/offline-node-queue";
 import { createClient } from "@/lib/supabase/client";
-import { uploadPageMedia } from "@/lib/storage/upload-page-media";
+import { uploadPageMedia } from "@/lib/storage/upload-node-media";
 import { cn } from "@/lib/utils";
 
 export interface EditorRootProps {

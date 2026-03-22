@@ -34,7 +34,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/Popover";
 import { cn } from "@/lib/utils";
-import { useDatabaseStore } from "@/lib/stores/databaseStore";
+import { useSectionStore } from "@/lib/stores/sectionStore";
 import type { Template } from "@/lib/types/templates";
 
 interface TemplatePickerProps {
@@ -50,10 +50,10 @@ export function TemplatePicker({
   userId,
   onSelect,
 }: TemplatePickerProps): JSX.Element {
-  const templates = useDatabaseStore((s) => s.templates);
-  const createTemplate = useDatabaseStore((s) => s.createTemplate);
-  const updateTemplate = useDatabaseStore((s) => s.updateTemplate);
-  const deleteTemplate = useDatabaseStore((s) => s.deleteTemplate);
+  const templates = useSectionStore((s) => s.templates);
+  const createTemplate = useSectionStore((s) => s.createTemplate);
+  const updateTemplate = useSectionStore((s) => s.updateTemplate);
+  const deleteTemplate = useSectionStore((s) => s.deleteTemplate);
 
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);

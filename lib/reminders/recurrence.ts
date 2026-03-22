@@ -68,6 +68,7 @@ export function expandOccurrences(
   const ruleEnd = rule.end_date ? parseISO(rule.end_date) : null;
   const hasDaysFilter =
     rule.frequency === "weekly" && rule.days_of_week.length > 0;
+  const excludedDates = new Set(rule.excluded_dates ?? []);
 
   while (count < maxCount) {
     if (ruleEnd && isAfter(current, ruleEnd)) {
@@ -82,6 +83,7 @@ export function expandOccurrences(
 
     if (
       matchesDay &&
+      !excludedDates.has(format(current, "yyyy-MM-dd")) &&
       (isSameDay(current, rangeStart) || isAfter(current, rangeStart)) &&
       (isSameDay(current, rangeEnd) || isBefore(current, rangeEnd))
     ) {

@@ -40,7 +40,8 @@ export function SelectEditor({
     const opt: SelectOption = {
       id: crypto.randomUUID(),
       name: newName.trim(),
-      color: DEFAULT_COLORS[options.length % DEFAULT_COLORS.length],
+      color:
+        DEFAULT_COLORS[options.length % DEFAULT_COLORS.length] ?? "gray",
     };
     onChange([...options, opt]);
     setNewName("");
@@ -72,6 +73,7 @@ export function SelectEditor({
       if (dragIdx === null || dragIdx === idx) return;
       const reordered = [...options];
       const [moved] = reordered.splice(dragIdx, 1);
+      if (moved === undefined) return;
       reordered.splice(idx, 0, moved);
       onChange(reordered);
       setDragIdx(idx);

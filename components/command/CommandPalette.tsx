@@ -32,10 +32,10 @@ import {
   useState,
 } from "react";
 import { ScrollArea } from "@/components/ui";
-import { useSidebarWorkspace } from "@/components/sidebar/SidebarContext";
-import { getRecentPageIds, pushRecentPage } from "@/lib/command/recent-pages";
-import { usePageTreeStore } from "@/lib/stores/pageTreeStore";
-import type { PageRow } from "@/lib/types/pages";
+import { useSidePanelWorkspace } from "@/components/side-panel/SidePanelContext";
+import { getRecentPageIds, pushRecentPage } from "@/lib/command/recent-nodes";
+import { useSectionTreeStore } from "@/lib/stores/sectionTreeStore";
+import type { NodeRow } from "@/lib/types/nodes";
 import { cn } from "@/lib/utils";
 
 export type CommandBlockType =
@@ -73,16 +73,16 @@ interface PaletteGroup {
 }
 
 function pageBreadcrumb(
-  pagesById: Record<string, PageRow>,
+  nodesById: Record<string, NodeRow>,
   pageId: string
 ): string {
   const titles: string[] = [];
-  let cur: PageRow | undefined = pagesById[pageId];
+  let cur: NodeRow | undefined = nodesById[pageId];
   const guard = new Set<string>();
   while (cur && !guard.has(cur.id)) {
     guard.add(cur.id);
     titles.unshift(cur.title?.trim() || "Untitled");
-    cur = cur.parent_id ? pagesById[cur.parent_id] : undefined;
+    cur = cur.parent_id ? nodesById[cur.parent_id] : undefined;
   }
   return titles.join(" > ");
 }
@@ -110,7 +110,7 @@ export function CommandPalette({
   const router = useRouter();
   const pathname = usePathname();
   const titleId = useId();
-  const { workspaceId, workspaceSlug, userId } = useSidebarWorkspace();
+  const { workspaceId, workspaceSlug, userId } = useSidePanelWorkspace();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const rowRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
@@ -120,9 +120,9 @@ export function CommandPalette({
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const pagesById = usePageTreeStore((s) => s.pagesById);
-  const addChildPage = usePageTreeStore((s) => s.addChildPageOptimistic);
-  const persistNewPage = usePageTreeStore((s) => s.persistNewPage);
+  const nodesById = useSectionTreeStore((s) => s.nodesById);
+  const addChildPage = useSectionTreeStore((s) => s.addChildNodeOptimistic);
+  const persistNewNode = useSectionTreeStore((s) => s.persistNewNode);
 
   useEffect(() => {
     const t = window.setTimeout(() => {
@@ -140,7 +140,7 @@ export function CommandPalette({
     if (!second || second === "settings" || slug !== workspaceSlug) {
       return;
     }
-    const p = usePageTreeStore.getState().pagesById[second];
+    const p = useSectionTreeStore.getState().nodesById[second];
     if (p && !p.is_deleted) {
       pushRecentPage(workspaceId, second);
     }
@@ -148,18 +148,18 @@ export function CommandPalette({
 
   const pageFuseRows = useMemo(() => {
     const rows: { id: string; title: string; breadcrumb: string }[] = [];
-    for (const p of Object.values(pagesById)) {
+    for (const p of Object.values(nodesById)) {
       if (!p || p.is_deleted) {
         continue;
       }
       rows.push({
         id: p.id,
         title: p.title?.trim() || "Untitled",
-        breadcrumb: pageBreadcrumb(pagesById, p.id),
+        breadcrumb: pageBreadcrumb(nodesById, p.id),
       });
     }
     return rows;
-  }, [pagesById]);
+  }, [nodesById]);
 
   const fuse = useMemo(
     () =>
@@ -199,7 +199,7 @@ export function CommandPalette({
     const recentIds = getRecentPageIds(workspaceId);
     const recentItems: PaletteItem[] = [];
     for (const id of recentIds) {
-      const p = pagesById[id];
+      const p = nodesById[id];
       if (!p || p.is_deleted) {
         continue;
       }
@@ -207,8 +207,8 @@ export function CommandPalette({
         id: `recent:${id}`,
         icon: FileText,
         title: p.title?.trim() || "Untitled",
-        subtitle: pageBreadcrumb(pagesById, id),
-        keywords: ["recent", pageBreadcrumb(pagesById, id)],
+        subtitle: pageBreadcrumb(nodesById, id),
+        keywords: ["recent", pageBreadcrumb(nodesById, id)],
         onSelect: () => navigateToPage(id),
       });
     }
@@ -217,13 +217,13 @@ export function CommandPalette({
       {
         id: "action:new-page",
         icon: FilePlus,
-        title: "New page",
-        subtitle: "Create a page at the root of this workspace",
+        title: "New article",
+        subtitle: "Create an article at the root of this workspace",
         keywords: ["create", "add"],
         onSelect: () => {
           const id = addChildPage(null, userId);
           if (id) {
-            void persistNewPage(id).then(() => {
+            void persistNewNode(id).then(() => {
               pushRecentPage(workspaceId, id);
               router.push(`/${workspaceSlug}/${id}`);
               setOpen(false);
@@ -234,7 +234,7 @@ export function CommandPalette({
       {
         id: "action:new-database",
         icon: Database,
-        title: "New database",
+        title: "New section",
         subtitle: "Coming soon",
         keywords: ["table", "db"],
         onSelect: () => {
@@ -244,7 +244,7 @@ export function CommandPalette({
       {
         id: "action:search",
         icon: Search,
-        title: "Search pages",
+        title: "Search articles",
         subtitle: "Filter the list below with your query",
         keywords: ["find"],
         onSelect: () => {
@@ -421,7 +421,7 @@ export function CommandPalette({
 
     const recentFiltered = filterItems(recentItems, debouncedSearch);
     if (recentFiltered.length > 0) {
-      out.push({ id: "recent", label: "Recent pages", items: recentFiltered });
+      out.push({ id: "recent", label: "Recent articles", items: recentFiltered });
     }
 
     const quickFiltered = filterItems(quickRaw, debouncedSearch);
@@ -438,7 +438,7 @@ export function CommandPalette({
     if (pageFiltered.length > 0) {
       out.push({
         id: "pages",
-        label: q.length > 0 ? "Pages" : "Page navigation",
+        label: q.length > 0 ? "Articles" : "Article navigation",
         items: pageFiltered,
       });
     }
@@ -472,8 +472,8 @@ export function CommandPalette({
     navigateToPage,
     onInsertBlock,
     pageFuseRows,
-    pagesById,
-    persistNewPage,
+    nodesById,
+    persistNewNode,
     addChildPage,
     router,
     userId,
@@ -621,7 +621,7 @@ export function CommandPalette({
                 autoComplete="off"
                 autoCorrect="off"
                 spellCheck={false}
-                placeholder="Search pages, actions, settings…"
+                placeholder="Search articles, actions, settings…"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => {

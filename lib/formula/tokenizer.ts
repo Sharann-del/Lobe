@@ -8,7 +8,7 @@ export function tokenize(input: string): FormulaToken[] {
   let i = 0;
 
   while (i < input.length) {
-    const ch = input[i];
+    const ch = input.charAt(i);
 
     if (/\s/.test(ch)) {
       i++;
@@ -43,12 +43,12 @@ export function tokenize(input: string): FormulaToken[] {
       const quote = ch;
       let str = "";
       i++;
-      while (i < input.length && input[i] !== quote) {
-        if (input[i] === "\\") {
+      while (i < input.length && input.charAt(i) !== quote) {
+        if (input.charAt(i) === "\\") {
           i++;
-          str += input[i] ?? "";
+          str += input.charAt(i);
         } else {
-          str += input[i];
+          str += input.charAt(i);
         }
         i++;
       }
@@ -57,14 +57,28 @@ export function tokenize(input: string): FormulaToken[] {
       continue;
     }
 
-    if (/\d/.test(ch) || (ch === "-" && i + 1 < input.length && /\d/.test(input[i + 1]) && (tokens.length === 0 || tokens[tokens.length - 1].kind === "lparen" || tokens[tokens.length - 1].kind === "comma" || tokens[tokens.length - 1].kind === "op"))) {
+    const prevTok = tokens.length > 0 ? tokens[tokens.length - 1] : undefined;
+    const prevKind = prevTok?.kind;
+    const nextCh = i + 1 < input.length ? input.charAt(i + 1) : "";
+    if (
+      /\d/.test(ch) ||
+      (ch === "-" &&
+        /\d/.test(nextCh) &&
+        (tokens.length === 0 ||
+          prevKind === "lparen" ||
+          prevKind === "comma" ||
+          prevKind === "op"))
+    ) {
       let num = "";
       if (ch === "-") {
         num += "-";
         i++;
       }
-      while (i < input.length && (/\d/.test(input[i]) || input[i] === ".")) {
-        num += input[i];
+      while (
+        i < input.length &&
+        (/\d/.test(input.charAt(i)) || input.charAt(i) === ".")
+      ) {
+        num += input.charAt(i);
         i++;
       }
       tokens.push({ kind: "number", value: num, pos: i });
@@ -86,8 +100,8 @@ export function tokenize(input: string): FormulaToken[] {
 
     if (/[a-zA-Z_]/.test(ch)) {
       let ident = "";
-      while (i < input.length && /[a-zA-Z0-9_]/.test(input[i])) {
-        ident += input[i];
+      while (i < input.length && /[a-zA-Z0-9_]/.test(input.charAt(i))) {
+        ident += input.charAt(i);
         i++;
       }
       const kind: TokenKind =
@@ -99,8 +113,8 @@ export function tokenize(input: string): FormulaToken[] {
     if (ch === "{") {
       i++;
       let prop = "";
-      while (i < input.length && input[i] !== "}") {
-        prop += input[i];
+      while (i < input.length && input.charAt(i) !== "}") {
+        prop += input.charAt(i);
         i++;
       }
       i++;
